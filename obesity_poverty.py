@@ -8,7 +8,7 @@ from scipy import stats
 # Preparing data
 # =============================================================================
 
-#read in files and save as DataFrames
+#read in files and save as DataFrames. ob = obesity, pov = poverty
 ob = pd.read_excel('OB_PREV_ALL_STATES.xlsx',header=1,index_col='FIPS Codes',na_values='No Data')
 pov = pd.read_csv('ACS_13_1YR_S1701_with_ann.csv',header=0,skiprows=[1],quotechar='"',na_values=['N','(X)'],index_col='GEO.id2')
 
@@ -22,28 +22,45 @@ ob = ob.dropna()
 # EDA
 # =============================================================================
 
-#EDA on the Obesity data for 2004: number of person who are obese
+#EDA on the Obesity data for 2004: number of persons who are obese
 _ = plt.hist(ob['percent'], label = '2004')
-_ = plt.xlabel('Percent of Obese Persons in County')
+_ = plt.title('2004')
+_ = plt.xlabel('Percent of Obesity in County')
 _ = plt.ylabel('Counts')
 
 #show the plot
 plt.show()
 
-#initialise disctionary to store the means and standard devs
+#initialise dictionary to store the means and standard devs
 ob_vals = np.empty([10,2])
 
 #plotting histograms for all years: 2004 to 2013
 for i in range(1,10):
-    # create 3x3 subplot for nine histograms excluding the first 'percent' column
+    #create 3x3 subplot for nine histograms excluding the first 'percent' column
     plt.subplot(3,3,i)
     
-    # plot the histogram
+    #plot the histogram
     _ = plt.hist(ob['percent.'+str(i)], label = str(2003 + i))
     
-    # append the mean and std to array ob_vals
+    #give each subplot a title
+    _ = plt.title(str(2003 + i))
+    
+    #append the mean and std to array ob_vals
     ob_vals[i][0] = np.mean(ob['percent.'+str(i)])
     ob_vals[i][1] = np.std(ob['percent.'+str(i)])
+    
+    #limit the axes
+    axes = plt.gca()
+    axes.set_xlim([10,50])
+    axes.set_ylim([0,1200])
+    
+    #drop axis tick labels
+    axes.set_yticklabels([])
+    axes.set_xticklabels([])
+    
+    
+#give figure axes labels
+_ = plt.xlabel('Percent of Obesity in County')
 
 #tidy up the axes
 _ = plt.tight_layout()
@@ -69,11 +86,11 @@ ob_dict.iloc[0,:] = (np.mean(ob['percent']),np.std(ob['percent']),2004)
 #save the summary statistics above
 ob_dict.to_csv('Obesity_Mean_Std')
 
-#subset the DataFrame ob with only the data of interest, country fips code already included
+#subset the DataFrame ob only with data of interest, country FIPS code already included
 ob = ob[['percent.9']]
 
 # =============================================================================
-# Analysis: Finding the correlation coefficent between the prevalence of obesity and povery
+# Analysis: Finding the correlation coefficent between the prevalence of obesity and poverty
 # =============================================================================
 
 #first let's merge the two DataFrames
@@ -89,7 +106,7 @@ ob_pov.index.name = 'Zipcodes'
 sns.set()
 _ = sns.lmplot('Obesity (%)','Poverty (%)',data = ob_pov, markers = '.')
 
-#LABEL the axes
+#label the axes
 _ = plt.xlabel('Obesity Prevalence (%)')
 _ = plt.ylabel('Poverty Prevalence (%)')
 
@@ -102,5 +119,3 @@ _ = plt.annotate(('$\\rho$ = ' + str(round(ob_pov_corr,2)) + ', p = ' + str('{:.
 
 #show the plot
 plt.show()
-
-
